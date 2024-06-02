@@ -1,11 +1,12 @@
 import torch
 from timeit import default_timer as timer
 from typing import Dict, Tuple
-from trainer import create_effnetb2_model
-from trainer_vit import create_vit_model
 import gradio as gr
 import random
 from pathlib import Path
+
+# from trainer import create_effnetb2_model
+from trainer_vit import create_vit_model
 
 
 def main():
@@ -69,6 +70,10 @@ def predict(img) -> Tuple[Dict, float]:
     pred_labels_and_probs = {
         class_names[i]: float(pred_probs[0][i]) for i in range(len(class_names))
     }
+
+    # if preediction confidence is less than 0.52, return "Unknown"
+    if max(pred_labels_and_probs.values()) < 0.52:
+        pred_labels_and_probs = {"Unknown": 1.0}
 
     # Calculate the prediction time
     pred_time = round(timer() - start_time, 5)
