@@ -1,12 +1,11 @@
+import json
+from pathlib import Path
+
 import torch
 import torchvision
 from torch import nn
-from pathlib import Path
-from going_modular import data_setup
-from going_modular import utils
-from going_modular import engine
-from going_modular import helper_functions
-import json
+
+from going_modular import data_setup, engine, helper_functions, utils
 
 
 def main():
@@ -16,8 +15,11 @@ def main():
     data = "Data/"
 
     # Setup directory paths to train and test images
-    train_dir = data + "Tumors/train"
-    test_dir = data + "Tumors/test"
+    data_type = "ChestXray"
+    train_dir = data + data_type + "/train"
+    test_dir = data + data_type + "/test"
+    # train_dir = data + "Tumors" + "/train"
+    # test_dir = data + "Tumors" + "/test"
     vit, vit_transforms = create_vit_model(num_classes=4, seed=43)
     (
         train_dataloader_vit,
@@ -62,9 +64,7 @@ def main():
     pretrained_vit_model_size = Path("models/vit.pth").stat().st_size // (
         1024 * 1024
     )  # division converts bytes to megabytes (roughly)
-    print(
-        f"Pretrained EffNetB2 feature extractor model size: {pretrained_vit_model_size} MB"
-    )
+    print(f"Pretrained EffNetB2 feature extractor model size: {pretrained_vit_model_size} MB")
     # Create a dictionary with EffNetB2 statistics
     vit_stats = {
         "test_loss": vit_results["test_loss"][-1],
