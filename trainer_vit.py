@@ -11,7 +11,7 @@ from going_modular import data_setup, engine, helper_functions, utils
 def main():
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     EPOCHS = 10
-    torch.set_default_device(DEVICE)
+    # torch.set_default_device(DEVICE)
     data = "Data/"
 
     # Setup directory paths to train and test images
