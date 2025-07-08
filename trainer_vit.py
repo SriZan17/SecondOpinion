@@ -79,7 +79,7 @@ def main():
     helper_functions.plot_loss_curves(vit_results)
 
 
-def create_vit_model(num_classes: int = 3, seed: int = 43):
+def create_vit_model(num_classes: int, seed: int = 42):
     """Creates a ViT-B/16 feature extractor model and transforms.
 
     Args:

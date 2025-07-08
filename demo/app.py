@@ -93,6 +93,4 @@ demo = gr.Interface(
     description=description,
     article=article,
 )
-
-# Launch the demo!
 demo.launch()
