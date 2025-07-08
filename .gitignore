@@ -1,0 +1,7 @@
+.vscode/
+Data/
+runs/
+__pycache__/
+demo/
+.gradio/
+going_modular/__pycache__/
