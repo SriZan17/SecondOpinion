@@ -3,6 +3,7 @@ from pathlib import Path
 
 import torch
 import torchvision
+from torchvision import transforms
 from torch import nn
 
 from going_modular import data_setup, engine, helper_functions, utils
@@ -20,7 +21,7 @@ def main():
     test_dir = data + data_type + "/test"
     # train_dir = data + "Tumors" + "/train"
     # test_dir = data + "Tumors" + "/test"
-    vit, vit_transforms = create_vit_model(num_classes=4, seed=43)
+    vit, vit_transforms, vit_transforms_augmented = create_vit_model(num_classes=4, seed=43)
     (
         train_dataloader_vit,
         test_dataloader_vit,
@@ -28,7 +29,8 @@ def main():
     ) = data_setup.create_dataloaders(
         train_dir=train_dir,
         test_dir=test_dir,
-        transform=vit_transforms,
+        train_transform=vit_transforms_augmented,
+        test_transform=vit_transforms,
         batch_size=128,
     )
 
@@ -58,7 +60,7 @@ def main():
     )
     # Save model
     utils.save_model(model=vit, model_name="vit" + ".pth", target_dir="models")
-    # Count number of parameters in EffNetB2
+    # Count number of parameters in ViT
     vit_total_params = sum(torch.numel(param) for param in vit.parameters())
     # Get the model size in bytes then convert to megabytes
     pretrained_vit_model_size = Path("models/vit.pth").stat().st_size // (
@@ -73,7 +75,7 @@ def main():
         "model_size (MB)": pretrained_vit_model_size,
     }
     # Save the dictionary as a JSON file
-    with open("effnetb2_stats.json", "w") as json_file:
+    with open("vit_stats.json", "w") as json_file:
         json.dump(vit_stats, json_file)
 
     helper_functions.plot_loss_curves(vit_results)
@@ -92,7 +94,14 @@ def create_vit_model(num_classes: int, seed: int = 42):
     """
     # Create ViT_B_16 pretrained weights, transforms and model
     weights = torchvision.models.ViT_B_16_Weights.DEFAULT
-    transforms = weights.transforms()
+    vit_transforms = weights.transforms()
+    vit_transforms_augmented = transforms.Compose([
+        transforms.RandomRotation(degrees=15),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2),
+        vit_transforms
+    ])
     model = torchvision.models.vit_b_16(weights=weights)
 
     # Freeze all layers in model
@@ -108,7 +117,7 @@ def create_vit_model(num_classes: int, seed: int = 42):
         )
     )  # update to reflect target number of classes
 
-    return model, transforms
+    return model, vit_transforms, vit_transforms_augmented
 
 
 if __name__ == "__main__":
