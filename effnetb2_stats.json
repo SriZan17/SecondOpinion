@@ -1,1 +1,1 @@
-{"test_loss": 0.4798257482637252, "test_acc": 0.84375, "number_of_parameters": 85801732, "model_size (MB)": 327}
+{"test_loss": 0.009138841393657705, "test_acc": 1.0, "number_of_parameters": 7703812, "model_size (MB)": 29}

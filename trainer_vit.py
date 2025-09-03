@@ -15,7 +15,7 @@ def main():
     data = "Data/"
 
     # Setup directory paths to train and test images
-    data_type = "ChestXray"
+    data_type = "Tumors"
     train_dir = data + data_type + "/train"
     test_dir = data + data_type + "/test"
     # train_dir = data + "Tumors" + "/train"

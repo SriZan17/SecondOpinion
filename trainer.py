@@ -12,14 +12,18 @@ import json
 def main():
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     EPOCHS = 10
-    torch.set_default_device(DEVICE)
+    #torch.set_default_device(DEVICE)
 
     data = "Data/"
 
     # Setup directory paths to train and test images
-    train_dir = data + "Tumors/train"
-    test_dir = data + "Tumors/test"
-    effnetb2, effnetb2_transforms = create_effnetb2_model(num_classes=4, seed=43)
+    data = "Data/"
+
+    # Setup directory paths to train and test images
+    data_type = "Seperator"
+    train_dir = data + data_type + "/train"
+    test_dir = data + data_type + "/test"
+    effnetb2, effnetb2_transforms = create_effnetb2_model(num_classes=2, seed=43)
     (
         train_dataloader_effnetb2,
         test_dataloader_effnetb2,

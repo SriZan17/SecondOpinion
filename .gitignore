@@ -5,3 +5,5 @@ __pycache__/
 demo/
 .gradio/
 going_modular/__pycache__/
+Non-MRI/dataset/
+Non-MRI/downloads
