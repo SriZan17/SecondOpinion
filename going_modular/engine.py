@@ -132,8 +132,10 @@ def train(
     epochs: int,
     device: torch.device,
     writer,  # new parameter to take in a writer
+    patience: int = 5,
+    min_delta: float = 0.001,
 ) -> Dict[str, List]:
-    """Trains and tests a PyTorch model.
+    """Trains and tests a PyTorch model with early stopping.
 
     Passes a target PyTorch models through train_step() and test_step()
     functions for a number of epochs, training and testing the model
@@ -142,6 +144,8 @@ def train(
     Calculates, prints and stores evaluation metrics throughout.
 
     Stores metrics to specified writer log_dir if present.
+
+    Stops training if the test loss does not improve for a number of epochs (`patience`).
 
     Args:
       model: A PyTorch model to be trained and tested.
@@ -152,6 +156,8 @@ def train(
       epochs: An integer indicating how many epochs to train for.
       device: A target device to compute on (e.g. "cuda" or "cpu").
       writer: A SummaryWriter() instance to log model results to.
+      patience (int): Number of epochs to wait for improvement before stopping.
+      min_delta (float): Minimum change in test loss to be considered an improvement.
 
     Returns:
       A dictionary of training and testing loss as well as training and
@@ -169,6 +175,10 @@ def train(
     """
     # Create empty results dictionary
     results = {"train_loss": [], "train_acc": [], "test_loss": [], "test_acc": []}
+
+    # Early stopping initializations
+    epochs_no_improve = 0
+    best_test_loss = float("inf")
 
     # Loop through training and testing steps for a number of epochs
     for epoch in tqdm(range(epochs)):
@@ -198,6 +208,17 @@ def train(
         results["test_loss"].append(test_loss)
         results["test_acc"].append(test_acc)
 
+        # Early stopping check
+        if test_loss < best_test_loss - min_delta:
+            best_test_loss = test_loss
+            epochs_no_improve = 0
+        else:
+            epochs_no_improve += 1
+
+        if epochs_no_improve >= patience:
+            print(f"\nEarly stopping triggered after {epoch+1} epochs.")
+            break
+
         # New: Use the writer parameter to track experiments ###
         # See if there's a writer, if so, log to it
         if writer:
@@ -214,10 +235,12 @@ def train(
             )
             writer.flush()
             # Close the writer
-            writer.close()
         else:
             pass
     # End new ###
+
+    if writer:
+        writer.close()
 
     # Return the filled results at the end of the epochs
     # save the model

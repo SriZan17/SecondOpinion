@@ -31,7 +31,7 @@ def calculate_confusion_matrix(
     y_preds = []
     test_data = datasets.ImageFolder(root=test_dir, transform=transform)
     test_dataloader = torch.utils.data.DataLoader(
-        test_data, batch_size=8, shuffle=False, num_workers=os.cpu_count() - 1
+        test_data, batch_size=16, shuffle=False, num_workers=os.cpu_count() - 1
     )
 
     model.eval()
@@ -56,10 +56,12 @@ def calculate_confusion_matrix(
     )
         #plot confusion matrix
     fig, ax = plot_confusion_matrix(
-        conf_mat=confmat_tensor,
+        conf_mat=confmat_tensor.cpu().numpy(),
         class_names=class_names,
+        figsize=(10, 7),
     )
-    ax.set_xlabel("Predicted label", fontsize=15)
+    ax.set_xlabel("Predicted", fontsize=17)
+    ax.set_ylabel("Actual", fontsize=17)
     fig.show()
     fig.savefig("confusion_matrix.png")
     return confmat_tensor.numpy()
