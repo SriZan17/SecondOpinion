@@ -13,17 +13,14 @@ def main():
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     EPOCHS = 10
     #torch.set_default_device(DEVICE)
-
-    data = "Data/"
-
     # Setup directory paths to train and test images
     data = "Data/"
 
     # Setup directory paths to train and test images
-    data_type = "Seperator"
+    data_type = "Tumors"
     train_dir = data + data_type + "/train"
     test_dir = data + data_type + "/test"
-    effnetb2, effnetb2_transforms = create_effnetb2_model(num_classes=2, seed=43)
+    effnetb2, effnetb2_transforms = create_effnetb2_model(num_classes=4, seed=43)
     (
         train_dataloader_effnetb2,
         test_dataloader_effnetb2,
@@ -31,7 +28,7 @@ def main():
     ) = data_setup.create_dataloaders(
         train_dir=train_dir,
         test_dir=test_dir,
-        transform=effnetb2_transforms,
+        train_transform=effnetb2_transforms,
         batch_size=128,
     )
 

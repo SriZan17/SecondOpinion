@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from pyexpat import model
 
 import torch
 import torchvision
@@ -11,7 +12,7 @@ from going_modular import data_setup, engine, helper_functions, utils
 
 def main():
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    EPOCHS = 10
+    EPOCHS = 25
     # torch.set_default_device(DEVICE)
     data = "Data/"
 
@@ -97,8 +98,8 @@ def create_vit_model(num_classes: int, seed: int = 42):
     vit_transforms = weights.transforms()
     vit_transforms_augmented = transforms.Compose([
         transforms.RandomRotation(degrees=15),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomVerticalFlip(p=0.5),
+        transforms.RandomHorizontalFlip(p=0.25),
+        transforms.RandomVerticalFlip(p=0.25),
         transforms.ColorJitter(brightness=0.2, contrast=0.2),
         vit_transforms
     ])
@@ -107,6 +108,14 @@ def create_vit_model(num_classes: int, seed: int = 42):
     # Freeze all layers in model
     for param in model.parameters():
         param.requires_grad = False
+
+    # Unfreeze the last block of the transformer encoder
+    for param in model.encoder.layers[-1].parameters():
+        param.requires_grad = True
+
+    # Unfreeze the final layer normalization layer (often helps)
+    for param in model.encoder.ln.parameters():
+        param.requires_grad = True
 
     # Change classifier head to suit our needs (this will be trainable)
     torch.manual_seed(seed)
