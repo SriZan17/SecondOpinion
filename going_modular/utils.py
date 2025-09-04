@@ -7,6 +7,7 @@ from torchmetrics import ConfusionMatrix
 from tqdm.auto import tqdm
 import os
 from torchvision import datasets
+from mlxtend.plotting import plot_confusion_matrix
 
 
 def calculate_confusion_matrix(
@@ -28,10 +29,9 @@ def calculate_confusion_matrix(
     """
 
     y_preds = []
-    test_dir = "data/pizza_steak_sushi/test"
     test_data = datasets.ImageFolder(root=test_dir, transform=transform)
     test_dataloader = torch.utils.data.DataLoader(
-        test_data, batch_size=32, shuffle=False, num_workers=os.cpu_count() - 1
+        test_data, batch_size=8, shuffle=False, num_workers=os.cpu_count() - 1
     )
 
     model.eval()
@@ -54,6 +54,14 @@ def calculate_confusion_matrix(
     confmat_tensor = confmat(
         preds=y_pred_tensor, target=torch.tensor(test_data.targets)
     )
+        #plot confusion matrix
+    fig, ax = plot_confusion_matrix(
+        conf_mat=confmat_tensor,
+        class_names=class_names,
+    )
+    ax.set_xlabel("Predicted label", fontsize=15)
+    fig.show()
+    fig.savefig("confusion_matrix.png")
     return confmat_tensor.numpy()
 
 
