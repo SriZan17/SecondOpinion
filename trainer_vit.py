@@ -12,7 +12,7 @@ from going_modular import data_setup, engine, helper_functions, utils
 
 def main():
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    EPOCHS = 25
+    EPOCHS = 300
     # torch.set_default_device(DEVICE)
     data = "Data/"
 
@@ -42,7 +42,7 @@ def main():
 
     # Setup the PyTorch TensorBoard logger
     writer = helper_functions.create_writer(
-        experiment_name="10-epochs",
+        experiment_name="Early stopping",
         model_name="vit",
         extra=f"{EPOCHS}_epochs",
     )
@@ -58,6 +58,7 @@ def main():
         loss_fn=loss_fn,
         device=DEVICE,
         writer=writer,
+        patience=17,   
     )
     # Save model
     utils.save_model(model=vit, model_name="vit" + ".pth", target_dir="models")
@@ -67,8 +68,8 @@ def main():
     pretrained_vit_model_size = Path("models/vit.pth").stat().st_size // (
         1024 * 1024
     )  # division converts bytes to megabytes (roughly)
-    print(f"Pretrained EffNetB2 feature extractor model size: {pretrained_vit_model_size} MB")
-    # Create a dictionary with EffNetB2 statistics
+    print(f"Pretrained VIT feature extractor model size: {pretrained_vit_model_size} MB")
+    # Create a dictionary with VIT statistics
     vit_stats = {
         "test_loss": vit_results["test_loss"][-1],
         "test_acc": vit_results["test_acc"][-1],

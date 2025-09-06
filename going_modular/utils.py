@@ -8,6 +8,79 @@ from tqdm.auto import tqdm
 import os
 from torchvision import datasets
 from mlxtend.plotting import plot_confusion_matrix
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc
+from sklearn.preprocessing import label_binarize
+
+def plot_multiclass_roc(y_true, y_score, class_names, save_path):
+    n_classes = len(class_names)
+
+    # Binarize labels
+    y_true_bin = label_binarize(y_true, classes=list(range(n_classes)))  # shape (N, C)
+
+    # Compute per-class ROC
+    fpr = {}
+    tpr = {}
+    roc_auc = {}
+    for i in range(n_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_true_bin[:, i], y_score[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # Micro-average
+    fpr["micro"], tpr["micro"], _ = roc_curve(y_true_bin.ravel(), y_score.ravel())
+    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+
+    # Macro-average
+    # Aggregate all FPRs
+    all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)]))
+    # Interpolate
+    mean_tpr = np.zeros_like(all_fpr)
+    for i in range(n_classes):
+        mean_tpr += np.interp(all_fpr, fpr[i], tpr[i])
+    mean_tpr /= n_classes
+    fpr["macro"] = all_fpr
+    tpr["macro"] = mean_tpr
+    roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
+
+    # Plot
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr["micro"], tpr["micro"],
+             label=f"micro-average ROC (AUC = {roc_auc['micro']:.3f})",
+             color="deeppink", linestyle=":", linewidth=2)
+    plt.plot(fpr["macro"], tpr["macro"],
+             label=f"macro-average ROC (AUC = {roc_auc['macro']:.3f})",
+             color="navy", linestyle=":", linewidth=2)
+
+    colors = plt.cm.tab10(np.linspace(0, 1, n_classes))
+    for i, c in enumerate(colors):
+        plt.plot(fpr[i], tpr[i], color=c,
+                 label=f"{class_names[i]} (AUC = {roc_auc[i]:.3f})", linewidth=1.5)
+
+    plt.plot([0, 1], [0, 1], "k--", linewidth=1)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("Multi-class ROC (One-vs-Rest)")
+    plt.legend(fontsize=8)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=200)
+    plt.close()
+    print(f"ROC curve saved to {save_path}")
+
+def collect_predictions(model, dataloader, device):
+    model.eval()
+    all_probs = []
+    all_labels = []
+    with torch.no_grad():
+        for images, labels in dataloader:
+            images = images.to(device)
+            logits = model(images)
+            probs = torch.softmax(logits, dim=1).cpu().numpy()
+            all_probs.append(probs)
+            all_labels.append(labels.numpy())
+    return np.concatenate(all_labels), np.concatenate(all_probs)
 
 
 def calculate_confusion_matrix(
@@ -63,7 +136,7 @@ def calculate_confusion_matrix(
     ax.set_xlabel("Predicted", fontsize=17)
     ax.set_ylabel("Actual", fontsize=17)
     fig.show()
-    fig.savefig("confusion_matrix.png")
+    fig.savefig("confusion_matrix.png", bbox_inches="tight")
     return confmat_tensor.numpy()
 
 

@@ -132,8 +132,8 @@ def train(
     epochs: int,
     device: torch.device,
     writer,  # new parameter to take in a writer
-    patience: int = 5,
-    min_delta: float = 0.001,
+    patience: int = 17,
+    min_delta: float = 0,
 ) -> Dict[str, List]:
     """Trains and tests a PyTorch model with early stopping.
 
@@ -179,6 +179,7 @@ def train(
     # Early stopping initializations
     epochs_no_improve = 0
     best_test_loss = float("inf")
+    _BEST_MODEL_PATH = "Models/best_model.pth"  # [NEW] where to save the best weights
 
     # Loop through training and testing steps for a number of epochs
     for epoch in tqdm(range(epochs)):
@@ -212,6 +213,7 @@ def train(
         if test_loss < best_test_loss - min_delta:
             best_test_loss = test_loss
             epochs_no_improve = 0
+            torch.save(model.state_dict(), _BEST_MODEL_PATH)  # [NEW] save best so far
         else:
             epochs_no_improve += 1
 
